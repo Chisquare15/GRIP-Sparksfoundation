@@ -1,0 +1,74 @@
+---
+title: "Prediction using Unsupervised ML"
+author: "Soham Bagchi"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+```
+
+### ABOUT THE DATASET
+
+The Iris flower data set or Fisher's Iris data set is a multivariate data set introduced by the British statistician, eugenicist, and biologist Ronald Fisher in his 1936 paper .
+
+```{r}
+iris<-read.csv(file.choose())
+iris<-iris[2:6]
+```
+### Exploring the data
+```{r}
+str(iris)
+summary(iris)
+```
+Preparing the dataset to apply clustering
+```{r}
+iris.s<-iris
+iris.s$Species<-NULL
+
+```
+### Using the elbow method to find the optimal number of clusters
+```{r}
+set.seed(6)
+wcss<-vector()
+for (i in 1:10)
+{
+  wcss[i]<-sum(kmeans(iris.s,i)$withinss)
+}
+plot(1:10,wcss,type="b",main=paste("Elbow method to find the optimal number of clusters"),xlab="Number of clusters",ylab="Within cluster sum square")
+
+``` 
+  
+  It is called 'The elbow method' as from the above graph,we get the optimum clusters  where the elbow occurs.So we see that the number of clusters as  '3'.
+
+```{r}
+set.seed(56)
+result<-kmeans(iris.s,3,iter.max = 300,nstar=10)
+result
+```
+### Confusion matrix
+Lets compare the clusters with the species
+```{r}
+
+table(iris$Species,result$cluster)
+plot(table(iris$Species, result$cluster),
+      main="Confusion Matrix for Clustering",
+      xlab="Species", ylab="Cluster")
+```
+
+### Visualizing the clusters
+
+```{r}
+library(ggplot2)
+result$cluster<-as.factor(result$cluster)
+center<-data.frame(result$centers)
+
+ggplot(iris.s)+geom_point(aes(x=PetalLengthCm,y=PetalWidthCm,color = result$cluster))+geom_point(data=center,aes(x=PetalLengthCm,y=PetalWidthCm),shape=5,color="black",size=4)+labs(x="Petal Length(in cm)",y="Petal Width(in cm)")+ggtitle("Visualizing the clusters",subtitle = "on petal length and petal width")
+
+ggplot(iris.s)+geom_point(aes(x=SepalLengthCm,y=SepalWidthCm,color = result$cluster))+geom_point(data=center,aes(x=SepalLengthCm,y=SepalWidthCm),shape=5,color="black",size=4)+labs(x="Sepal Length(in cm)",y="Sepal Width(in cm)")+ggtitle("Visualizing the clusters",subtitle = "on sepal length and sepal width")
+
+```
+
+
+
